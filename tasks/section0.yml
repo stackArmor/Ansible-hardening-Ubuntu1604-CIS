@@ -1,0 +1,10 @@
+---
+- name: "SCORED | 0.1 | PATCH | Ensure permissions on bootloader config are configured"
+  shell: sudo chown root:root /boot/grub/grub.cfg | sudo chmod og-rwx /boot/grub/grub.cfg
+  when:
+      - ubuntu1604cis_rule_0_1
+  tags:
+      - level1
+      - scored
+      - patch
+      - rule_0.1

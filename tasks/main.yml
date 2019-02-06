@@ -1,46 +1,60 @@
-# Copyright 2018, Trend Micro
-#
-# License as per [repo](master/LICENSE)
-#
-# *********************************************************************
-# * Install, Activate and Manage Trend Micro Deep Security Agent
-# *********************************************************************
 ---
-- name: "Announce deprecated for variable 'action'"
-  debug:
-    msg: "[Warning] the variable 'action' is deprecated, please change to use 'operation' instead"
-  when: action is defined and (operation is not defined)
+# tasks file for Ubuntu1604-CIS
+- name: Check OS version and family
+  fail:
+      msg: "This role can only be run agaist Ubuntu 16.04. {{ ansible_distribution }} {{ ansible_distribution_major_version }} is not supported."
+  when:
+      - not ansible_distribution == "Ubuntu"
+      - not ansible_distribution_release == "xenial"
+  tags:
+      - always
 
-- name: "Convert action to operation"
-  set_fact:
-    operation: "{{ action }}"
-  when: action is defined and (operation is not defined)
+- name: Check ansible version
+  fail:
+      msg: You must use ansible 2.3 or greater!
+  when: not ansible_version.full is version_compare('2.3', '>=')
+  tags:
+      - always
 
-- name: "Listing parameters"
-  debug:
-    msg:
-       - "operation                    : {{ operation }}"
-       - "dsm_agent_download_hostname  : {{ dsm_agent_download_hostname }}"
-       - "dsm_agent_download_port      : {{ dsm_agent_download_port }}"
-       - "dsm_agent_activation_hostname: {{ dsm_agent_activation_hostname }}"
-       - "dsm_agent_activation_port    : {{ dsm_agent_activation_port }}"
-       - "policy_id                    : {{ policy_id }}"
-       - "policy_name                  : {{ policy_name }}"
-       - "group_id                     : {{ group_id }}"
-       - "force_reactivation           : {{ force_reactivation }}"
+- include: prelim.yml
+  become: true
+  tags:
+      - prelim_tasks
+      - always
 
-- name: Deploy (Install then Activate) Trend Micro Deep Security Agent
-  include_tasks: deploy.yml
-  when: operation == 'deploy'
+- include: section1.yml
+  become: true
+  when: ubuntu1604cis_section1
+  tags: section1
 
-- name: Install Trend Micro Deep Security Agent
-  include_tasks: install.yml
-  when: operation == 'install'
+- include: section2.yml
+  become: true
+  when: ubuntu1604cis_section2
+  tags: section2
 
-- name: Activate Trend Micro Deep Security Agent
-  include_tasks: activate.yml
-  when: operation == 'activate'
+- include: section3.yml
+  become: true
+  when: ubuntu1604cis_section3
+  tags: section3
 
-- name: Manage Trend Micro Deep Security Agent
-  include_tasks: manage.yml
-  when: operation != 'deploy' and operation != 'install' and operation != 'activate'
+- include: section4.yml
+  become: true
+  when: ubuntu1604cis_section4
+  tags: section4
+
+- include: section5.yml
+  become: true
+  when: ubuntu1604cis_section5
+  tags: section5
+
+- include: section6.yml
+  become: true
+  when: ubuntu1604cis_section6
+  tags: section6
+
+
+- include: post.yml
+  become: true
+  tags:
+      - post_tasks
+      - always

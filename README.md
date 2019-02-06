@@ -1,168 +1,187 @@
-# Ansible
+Ubuntu 16.04 CIS STIG
+================
 
-An Ansible playbook for the Deep Security Agent. This playbook allows you to easily deploy the Deep Security Agent as well as take some common operations from the Agent.
+[![Build Status](https://travis-ci.org/florianutz/Ubuntu1604-CIS.svg?branch=master)](https://travis-ci.org/florianutz/Ubuntu1604-CIS)
+[![Ansible Role](https://img.shields.io/badge/role-florianutz.Ubuntu1604--CIS-blue.svg)](https://galaxy.ansible.com/florianutz/Ubuntu1604-CIS/)
 
-## Support
+Configure Ubuntu 16.04 machine to be CIS compliant. Level 1 and 2 findings will be corrected by default.
 
-This is a community project that is supported by the Trend Micro Deep Security team.
+This role **will make changes to the system** that could break things. This is not an auditing tool but rather a remediation tool to be used after an audit has been conducted.
 
-Tutorials, feature-specific help, and other information about Deep Security is available from the [Deep Security Help Center](https://help.deepsecurity.trendmicro.com/Welcome.html). 
+## IMPORTANT INSTALL STEP
 
-For Deep Security specific issues, please use the regular Trend Micro support channels. For issues with the code in this repository, please [open an issue here on GitHub](https://github.com/deep-security/ansible/issues).
+If you want to install this via the `ansible-galaxy` command you'll need to run it like this:
 
-## Requirements
+`ansible-galaxy install -p roles -r requirements.yml`
 
-All of the tasks in this repository require a working Deep Security infrastructure. The key component is the Trend Micro Deep Security Manager. The Deep Security Agents (which these playbooks help you manage) do the heavy lifting but the Deep Security Manager gives the orders. 
+With this in the file requirements.yml:
 
-There are no specific technical requirements beyond a standard Ansible deployment.
-
-
-## Dependencies
-
-There are no dependencies.
-
-
-## Usage
-
-Currently we have provided two ways to retrieve this role:
-
-### Download from Ansible-Galaxy
- * Please visit our role in [Ansible-Galaxy](https://galaxy.ansible.com/deep-security/deep-security-agent)
- * Command to download this role
-```bash
-ansible-galaxy install deep-security.deep-security-agent
+```
+- src: https://github.com/florianutz/Ubuntu1604-CIS.git
 ```
 
-#### For deploying Agents to a non-multi-tenant Deep Security Manager
-```yaml
-- hosts: all
+Based on [CIS Ubuntu Benchmark v1.1.0 - 12-28-2017 ](https://community.cisecurity.org/collab/public/index.php).
+
+This repo originated from work done by [MindPointGroup](https://github.com/MindPointGroup/RHEL7-CIS)
+
+Requirements
+------------
+
+You should carefully read through the tasks to make sure these changes will not break your systems before running this playbook.
+
+Role Variables
+--------------
+There are many role variables defined in defaults/main.yml. This list shows the most important.
+
+**ubuntu1604cis_notauto**: Run CIS checks that we typically do NOT want to automate due to the high probability of breaking the system (Default: false)
+
+**ubuntu1604cis_section1**: CIS - General Settings (Section 1) (Default: true)
+
+**ubuntu1604cis_section2**: CIS - Services settings (Section 2) (Default: true)
+
+**ubuntu1604cis_section3**: CIS - Network settings (Section 3) (Default: true)
+
+**ubuntu1604cis_section4**: CIS - Logging and Auditing settings (Section 4) (Default: true)
+
+**ubuntu1604cis_section5**: CIS - Access, Authentication and Authorization settings (Section 5) (Default: true)
+
+**ubuntu1604cis_section6**: CIS - System Maintenance settings (Section 6) (Default: true)  
+
+##### Disable all selinux functions
+`ubuntu1604cis_selinux_disable: false`
+
+##### Service variables:
+###### These control whether a server should or should not be allowed to continue to run these services
+
+```
+ubuntu1604cis_avahi_server: false  
+ubuntu1604cis_cups_server: false  
+ubuntu1604cis_dhcp_server: false  
+ubuntu1604cis_ldap_server: false  
+ubuntu1604cis_telnet_server: false  
+ubuntu1604cis_nfs_server: false  
+ubuntu1604cis_rpc_server: false  
+ubuntu1604cis_ntalk_server: false  
+ubuntu1604cis_rsyncd_server: false  
+ubuntu1604cis_tftp_server: false  
+ubuntu1604cis_rsh_server: false  
+ubuntu1604cis_nis_server: false  
+ubuntu1604cis_snmp_server: false  
+ubuntu1604cis_squid_server: false  
+ubuntu1604cis_smb_server: false  
+ubuntu1604cis_dovecot_server: false  
+ubuntu1604cis_httpd_server: false  
+ubuntu1604cis_vsftpd_server: false  
+ubuntu1604cis_named_server: false  
+ubuntu1604cis_bind: false  
+ubuntu1604cis_vsftpd: false  
+ubuntu1604cis_httpd: false  
+ubuntu1604cis_dovecot: false  
+ubuntu1604cis_samba: false  
+ubuntu1604cis_squid: false  
+ubuntu1604cis_net_snmp: false  
+```  
+
+##### Designate server as a Mail server
+`ubuntu1604cis_is_mail_server: false`
+
+
+##### System network parameters (host only OR host and router)
+`ubuntu1604cis_is_router: false`  
+
+
+##### IPv6 required
+`ubuntu1604cis_ipv6_required: true`  
+
+
+##### AIDE
+`ubuntu1604cis_config_aide: true`
+
+###### AIDE cron settings
+```
+ubuntu1604cis_aide_cron:
+  cron_user: root
+  cron_file: /etc/crontab
+  aide_job: '/usr/sbin/aide --check'
+  aide_minute: 0
+  aide_hour: 5
+  aide_day: '*'
+  aide_month: '*'
+  aide_weekday: '*'  
+```
+
+##### SELinux policy
+`ubuntu1604cis_selinux_pol: targeted`
+
+
+##### Set to 'true' if X Windows is needed in your environment
+`ubuntu1604cis_xwindows_required: no`
+
+
+##### Client application requirements
+```
+ubuntu1604cis_openldap_clients_required: false
+ubuntu1604cis_telnet_required: false
+ubuntu1604cis_talk_required: false  
+ubuntu1604cis_rsh_required: false
+ubuntu1604cis_ypbind_required: false
+```
+
+##### Time Synchronization
+```
+ubuntu1604cis_time_synchronization: chrony
+ubuntu1604cis_time_Synchronization: ntp
+
+ubuntu1604cis_time_synchronization_servers:
+    - 0.pool.ntp.org
+    - 1.pool.ntp.org
+    - 2.pool.ntp.org
+    - 3.pool.ntp.org  
+```  
+
+##### 3.4.2 | PATCH | Ensure /etc/hosts.allow is configured
+```
+ubuntu1604cis_host_allow:
+  - "10.0.0.0/255.0.0.0"  
+  - "172.16.0.0/255.240.0.0"  
+  - "192.168.0.0/255.255.0.0"    
+```  
+
+```
+ubuntu1604cis_firewall: firewalld
+ubuntu1604cis_firewall: iptables
+```
+
+
+Dependencies
+------------
+
+Ansible > 2.2
+
+Example Playbook
+-------------------------
+
+```
+- name: Harden Server
+  hosts: servers
+  become: yes
+
   roles:
-    - role: deep-security.deep-security-agent
-      operation: deploy
-      dsm_agent_download_hostname: deep.security.manager.host
-      dsm_agent_download_port: 4119
-      dsm_agent_activation_hostname: deep.security.manager.host
-      dsm_agent_activation_port: 4120
-      policy_id: 1
-      group_id: 1
-      force_reactivation: false
+    - Ubuntu1604-CIS
 ```
 
-#### For deploying Agents to a multi-tenant Deep Security Manager (like Deep Security as a Service)
-```yaml
-- hosts: all
-  roles:
-    - role: deep-security.deep-security-agent
-      operation: deploy
-      dsm_agent_download_hostname: app.deepsecurity.trendmicro.com
-      dsm_agent_download_port: 443
-      dsm_agent_activation_hostname: agents.deepsecurity.trendmicro.com
-      dsm_agent_activation_port: 443
-      tenant_id: 111A111A-1A1A-11AA-AAA-11AA11111111
-      token | tenant_password: 111A111A-1A1A-11AA-AAA-11AA11111111
-      policy_id: 1
-      group_id: 1
-      force_reactivation: false
-```
+Tags
+----
+Many tags are available for precise control of what is and is not changed.
 
-### Clone from this repo
- * Command to clone this repository:
-```bash
-git clone git@github.com:deep-security/ansible.git <folder-name>
-```
-
- * For users have cloned Deep Security Ansible script from this repo, we suggest to have following folder structure for playbook and role:
+Some examples of using tags:
 
 ```
-project
-│   playbook.yaml
-└───roles
-    └───<folder-name>
-        │   LICENSE
-        │   README.md
-        └───defaults
-        └───meta
-        └───tasks
+    # Audit and patch the site
+    ansible-playbook site.yml --tags="patch"
 ```
 
-#### For deploying Agents to a non-multi-tenant Deep Security Manager
-```yaml
-- hosts: all
-  roles:
-    - role: <folder-name>
-      operation: deploy
-      dsm_agent_download_hostname: deep.security.manager.host
-      dsm_agent_download_port: 4119
-      dsm_agent_activation_hostname: deep.security.manager.host
-      dsm_agent_activation_port: 4120
-      policy_id: 1
-      group_id: 1
-      force_reactivation: false
-```
+License
+-------
 
-#### For deploying Agents to a multi-tenant Deep Security Manager (like Deep Security as a Service)
-```yaml
-- hosts: all
-  roles:
-    - role: <folder-name>
-      operation: deploy
-      dsm_agent_download_hostname: app.deepsecurity.trendmicro.com
-      dsm_agent_download_port: 443
-      dsm_agent_activation_hostname: agents.deepsecurity.trendmicro.com
-      dsm_agent_activation_port: 443
-      tenant_id: 111A111A-1A1A-11AA-AAA-11AA11111111
-      token | tenant_password: 111A111A-1A1A-11AA-AAA-11AA11111111
-      policy_id: 1
-      group_id: 1
-      force_reactivation: false
-```
-
-<a id="operations"></a>
-## Operations
-Definition for possible operations to be performed in this role, for required variables please refer to [Variables](#variables).
-
-Operation | Description | Variables
-------------|-------------|-------------------
-deploy | The <code>deploy</code> task includes the <code>install</code> and <code>activate</code> playbooks internally. | dsm_agent_download_hostname <br /> dsm_agent_download_port <br /> dsm_agent_activation_hostname	 <br/> dsm_agent_activation_port <br/> policy_id/policy_name (Optional) <br/> group_id (Optional) <br/> force_reactivation (Optional) <br/><br/> **For multi-tenancy only:** <br/> tenant_id <br /> token/tenant_password
-install | The install task downloads and installs the Deep Security Agent. The installation is skipped if an Agent of the same version is already installed. If a newer version of Deep Security Installer is already installed, then the version is upgraded. | dsm_agent_download_hostname <br/> dsm_agent_download_port
-activate | The activate task activates the Deep Security Agent by registering it in Trend Micro Deep Security Manager. By default, activation is skipped if the Agent is already activated, unless the force_reactivation attribute is set to true. | dsm_agent_activation_hostname <br/> dsm_agent_activation_port <br/> policy_id/policy_name (Optional) <br/> group_id (Optional) <br/> force_reactivation (Optional) <br/><br/> **For multi-tenancy only:** <br/> tenant_id <br/> token/tenant_password
-set-policy-by-id | Change the Agent's policy via policy id | policy_id
-set-policy-by-name | Change the Agent's policy via policy name | policy_name
-check-in-with-manager | Ask the Agent to contact the Manager now. | N/A
-create-diagnostic-package | Generate an Agent diagnostic package. | N/A
-create-integrity-baseline | Rebuild the integrity monitoring baseline on the computer. | N/A
-run-recommendation-scans | Initiate a recommendation scan on the computer. | N/A
-scan-for-integrity-changes | Scan for changes for integrity monitoring | N/A
-scan-for-malware | Initiate a manual anti-malware scan | N/A
-update-configuration | Instruct the Deep Security Manager to perform a "Send Policy" operation. | N/A
-
-<a id="variables"></a>
-## Variables
-
-Key | Type | Description | Sample
-----|------|-------------|--------
-action | String | Name of the operation to be performed **(deprecated&mdash;please use operation instead)** | See [Operations](#operations)
-operation | String | Name of the operation to be performed | See [Operations](#operations)
-dsm_agent_activation_hostname | String | The hostname for the Agents to communicate with once deployed. For Marketplace and software deployments, this is typically the same hostname as 'dsm_agent_download_hostname'. | agents.deepsecurity.trendmicro.com
-dsm_agent_activation_port | Integer | The port used for the Agent heartbeat (the regular communication). For Marketplace and software deployments, the default is 4120. | 443
-dsm_agent_download_hostname | String | The hostname of the Deep Security Manager. | app.deepsecurity.trendmicro.com
-dsm_agent_download_port | Integer | The port to connect to the Deep Security Manager to download the Agents. This is typically the same port as the one used to access the Deep Security Manager administration interface. | 443
-force_reactivation | Boolean | Force re-activation even if the Deep Security Agent has already been activated. | false
-group_id | String | The Deep Security ID assigned to the computer group and applied to the Agents on activation. | 1
-policy_id | String | ID of the Deep Security Policy to be assigned to the Agents. | 1
-policy_name | String | Name of the Deep Security Policy to be assigned to the Agents. <br /> **Will be ignored if policy_id has been set.** | Base Policy
-tenant_id | String | In a multi-tenant installation (like Deep Security as a Service), this identifies the tenant account to register the Agent with. <br /> **Multi-tenancy only** | 111A111A-1A1A-11AA-AAA-11AA11111111
-token/tenant_password | String | In a multi-tenant installation (like Deep Security as a Service), this identifies the tenant account to register the Agent with. In latest Deep Security Manager, "tenant_password" has been replaced with "token". "tenant_password" has been kept for backwards compatibility.<br /> **Multi-tenancy only** | 111A111A-1A1A-11AA-AAA-11AA11111111
-
-
-
-## How to contribute
-
-We're always open to PRs from the community. To submit one:
-
-1. Fork the repo.
-2. Create a new feature branch.
-3. Make your changes.
-4. Submit a PR with an explanation of your changes or additions.
-
-We'll review your content and work with you to make sure the fix gets pushed out quickly. For further help, please contact the Trend Micro open source support team at deepsecurityopensource@trendmicro.com.
+MIT
