@@ -1,0 +1,8 @@
+
+
+- name: Harden Server
+  hosts: marketplace
+  become: yes
+
+  roles:
+    - Ubuntu1604-CIS
