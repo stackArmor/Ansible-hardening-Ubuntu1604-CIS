@@ -1,6 +1,10 @@
 Ubuntu 16.04 CIS STIG
 ================
 
+
+**NEEDS PYTHON 2 TO BE INSTALLED ON THE UBUNTU MACHINE**
+
+
 [![Build Status](https://travis-ci.org/florianutz/Ubuntu1604-CIS.svg?branch=master)](https://travis-ci.org/florianutz/Ubuntu1604-CIS)
 [![Ansible Role](https://img.shields.io/badge/role-florianutz.Ubuntu1604--CIS-blue.svg)](https://galaxy.ansible.com/florianutz/Ubuntu1604-CIS/)
 
