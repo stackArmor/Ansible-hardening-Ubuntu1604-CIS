@@ -949,7 +949,7 @@
       - rule_1.9.2
 
 - name: "SCORED | 1.9.3 | PATCH | Ensure default deny firewall policy"
-  shell: iptables -A INPUT -i lo -j ACCEPT |  iptables -A OUTPUT -o lo -j ACCEPT | iptables -A INPUT -s 127.0.0.0/8 -j DROP
+  shell: iptables -A INPUT -i lo -j ACCEPT |  iptables -w -A OUTPUT -o lo -j ACCEPT  | iptables -w -A INPUT -s 127.0.0.0/8 -j DROP 
   become: yes
   when:
       - ubuntu1604cis_rule_1_9_3
@@ -970,9 +970,12 @@
       - patch
       - rule_1.9.4
 
-- name: "SCORED | 1.9.5 | PATCH | Ensure permissions on all logfiles are configured"
-  shell: find /var/log -type f -exec chmod g-wx,o-rwx {} +
-  become: yes
+- name: "SCORED | 1.9.5 | PATCH | Ensure access to the su command is restricted"
+  lineinfile:
+     state: present
+     dest: /etc/pam.d/su
+     regexp: 'auth\s+required\s+pam_wheel\.so'
+     line: 'auth           required        pam_wheel.so use_uid'
   when:
       - ubuntu1604cis_rule_1_9_5
   tags:
@@ -980,3 +983,122 @@
       - scored
       - patch
       - rule_1.9.5
+
+
+- name: "SCORED | 1.9.6 pt1 | PATCH | Ensure ssh access is limited"
+  lineinfile:
+     state: present
+     dest: /etc/ssh/sshd_config
+     regexp: "^AllowUsers"
+     line: AllowUsers ubuntu
+  when:
+      - ubuntu1604cis_rule_1_9_6
+  tags:
+      - level1
+      - scored
+      - patch
+      - rule_1.9.6
+
+- name: "SCORED | 1.9.6 pt2 | PATCH | Ensure ssh access is limited"
+  lineinfile:
+     state: present
+     dest: /etc/ssh/sshd_config
+     regexp: "^AllowGroups"
+     line: AllowGroups ubuntu
+
+  when:
+      - ubuntu1604cis_rule_1_9_6
+  tags:
+      - level1
+      - scored
+      - patch
+      - rule_1.9.6
+
+
+- name: "SCORED | 1.9.6 pt3 | PATCH | Ensure ssh access is limited"
+  shell: /etc/init.d/ssh restart
+  become: yes
+  when:
+      - ubuntu1604cis_rule_1_9_6
+  tags:
+      - level1
+      - scored
+      - patch
+      - rule_1.9.6
+
+
+- name: "SCORED | 1.9.7 | PATCH | Ensure system accounts are non-login"
+  script: /home/rohit/non-login.sh
+  become: yes
+  when:
+      - ubuntu1604cis_rule_1_9_7
+  tags:
+      - level1
+      - scored
+      - patch
+      - rule_1.9.7
+
+- name: "SCORED | 1.9.8 | PATCH | Ensure default user umask is 027 or more restrictive"
+  block:
+      - name: "SCORED | 1.9.8| PATCH | Ensure default user umask is 027 or more restrictive - /etc/bashrc"
+        replace:
+            path: /etc/bashrc
+            regexp: '(^\s+umask) 002'
+            replace: '\1 027'
+        ignore_errors: yes
+
+      - name: "SCORED | 1.9.8 | PATCH | Ensure default user umask is 027 or more restrictive - /etc/profile"
+        replace:
+            path: /etc/profile
+            regexp: '(^\s+umask) 002'
+            replace: '\1 027'
+        ignore_errors: yes
+  when:
+      - ubuntu1604cis_rule_1_9_8
+  tags:
+      - level1
+      - scored
+      - patch
+      - rule_1.9.8
+
+
+
+- name: "SCORED | 1.9.9 | PATCH |  Ensure default user shell timeout is 900 seconds or less"
+  lineinfile:
+    path:   "/etc/bash.bashrc"
+    regexp: "{{item.regexp}}"
+    line:   "{{item.line}}"
+    create: yes
+  with_items:
+    - { regexp: '^TMOUT',  line: 'TMOUT=600' }
+    - { regexp: '^TMOUT',  line: 'TMOUT=600' }
+  when:
+      - ubuntu1604cis_rule_1_9_9
+  tags:
+      - level1
+      - scored
+      - patch
+      - rule_1.9.9
+
+
+- name: "SCORED | 1.9.10 | PATCH | Ensure permissions on /etc/shadow are configured"
+  shell: chown root:shadow /etc/shadow | chmod o-rwx,g-wx /etc/shadow
+  become: yes
+  when:
+      - ubuntu1604cis_rule_1_9_10
+  tags:
+      - level1
+      - scored
+      - patch
+      - rule_1.9.10
+
+- name: "SCORED | 1.9.11 | PATCH | Ensure permissions on /etc/gshadow are configured"
+  shell: chown root:shadow /etc/gshadow | chmod o-rwx,g-rw /etc/gshadow
+  become: yes
+  when:
+      - ubuntu1604cis_rule_1_9_11
+  tags:
+      - level1
+      - scored
+      - patch
+      - rule_1.9.11
